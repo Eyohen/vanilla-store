@@ -6,7 +6,6 @@
     "start": "live-server --port=3000",
     "dev": "live-server --port=3000 --watch=.",
     "build": "echo \"Building for production...\" && npm run validate",
-    "validate": "node -e \"console.log('Validating configuration...'); require('./config/coinley-config.js')\"",
     "test": "echo \"Running integration tests...\" && node test/integration.js",
     "deploy": "echo \"Deploy to your hosting platform\"",
     "setup": "cp .env.example .env && echo \"Please configure your .env file\""
