@@ -1,0 +1,24 @@
+{
+  "name": "vanilla-ecommerce",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server --port=3000",
+    "dev": "live-server --port=3000 --watch=.",
+    "build": "echo \"Building for production...\" && npm run validate",
+    "validate": "node -e \"console.log('Validating configuration...'); require('./config/coinley-config.js')\"",
+    "test": "echo \"Running integration tests...\" && node test/integration.js",
+    "deploy": "echo \"Deploy to your hosting platform\"",
+    "setup": "cp .env.example .env && echo \"Please configure your .env file\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "coinley-universal": "^1.0.0"
+  }
+}
