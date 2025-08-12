@@ -248,9 +248,12 @@
             try {
                 if (typeof CoinleyVanilla !== 'undefined') {
                     coinleyPayment = new CoinleyVanilla({
-                        apiKey: "fdb87b029d8fb531589df71e17a8cc55",
-                        apiSecret: "5fe381f54803f100312117028542e952bd5d3d1d8b8df2dd1d0761c030cda4bf",
-                        apiUrl: "http://localhost:9000",
+                        // apiKey: "fdb87b029d8fb531589df71e17a8cc55",
+                        // apiSecret: "5fe381f54803f100312117028542e952bd5d3d1d8b8df2dd1d0761c030cda4bf",
+                        // apiUrl: "http://localhost:9000",
+                        apiKey: "afb78ff958350b9067798dd077c28459",
+                        apiSecret: "c22d3879eff18c2d3f8f8a61d4097c230a940356a3d139ffceee11ba65b1a34c",
+                        apiUrl: "https://coinleyserver-production.up.railway.app",
                         theme: "light",
                         debug: true
                     });
@@ -1110,7 +1113,7 @@
                                         id="checkout-submit"
                                         class="w-full py-2 px-4 bg-primary hover:bg-primary-dark text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
                                     >
-                                        Complete Purchase with Crypto
+                                        Proceed to Pay
                                     </button>
                                 </div>
                             </form>
