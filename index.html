@@ -1,461 +1,538 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fresh Food Store - Crypto Payments</title>
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vanilla Store - Crypto Payments</title>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts - Bricolage Grotesque -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
+
     <!-- Coinley Vanilla SDK - Update this path once you publish -->
     <!-- For testing locally, use: -->
     <!-- <script src="./dist/vanilla/coinley-vanilla.umd.js"></script> -->
     <!-- <link rel="stylesheet" href="./dist/vanilla/style.css"> -->
-    
+
     <!-- For production, use CDN: -->
     <script src="https://unpkg.com/coinley-test@latest/dist/vanilla/coinley-vanilla.umd.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/coinley-test@latest/dist/vanilla/style.css">
-    
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/coinley-test@latest/dist/vanilla/style.css"
+    />
+
     <!-- Custom Tailwind Config -->
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'bricolage': ['Bricolage Grotesque', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: '#7042D2',
-                        'primary-dark': '#5c2db5',
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              bricolage: ["Bricolage Grotesque", "sans-serif"],
+            },
+            colors: {
+              primary: "#7042D2",
+              "primary-dark": "#5c2db5",
+            },
+          },
+        },
+      };
     </script>
-    
+
     <style>
-        body {
-            font-family: 'Bricolage Grotesque', sans-serif;
+      body {
+        font-family: "Bricolage Grotesque", sans-serif;
+      }
+
+      .container-custom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+      }
+
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .loading-spinner {
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #7042d2;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-        
-        .container-custom {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
+        100% {
+          transform: rotate(360deg);
         }
-        
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        .loading-spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #7042D2;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+      }
     </style>
-</head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
+  </head>
+  <body class="bg-gray-50 min-h-screen flex flex-col">
     <!-- Navigation -->
     <nav id="navbar" class="bg-white shadow-md px-9">
-        <div class="container-custom py-4">
-            <div class="flex items-center justify-between">
-                <!-- Logo -->
-                <a href="#" onclick="navigateTo('home')" class="flex items-center space-x-2">
-                    <span class="text-primary text-2xl font-bold font-bricolage">Fresh Food Store</span>
-                </a>
-                
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#" onclick="navigateTo('home')" class="text-gray-700 hover:text-primary font-medium">Home</a>
-                    <a href="#" onclick="navigateTo('products')" class="text-gray-700 hover:text-primary font-medium">Products</a>
-                </div>
-                
-                <!-- Cart Icon -->
-                <div class="flex items-center space-x-4">
-                    <a href="#" onclick="navigateTo('cart')" class="relative">
-                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-                        <span id="cart-count" class="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
-                    </a>
-                    
-                    <!-- Mobile menu button -->
-                    <button onclick="toggleMobileMenu()" class="md:hidden text-gray-700 focus:outline-none">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Mobile Navigation -->
-            <div id="mobile-menu" class="md:hidden mt-4 pb-4 hidden">
-                <a href="#" onclick="navigateTo('home'); toggleMobileMenu()" class="block py-2 text-gray-700 hover:text-primary font-medium">Home</a>
-                <a href="#" onclick="navigateTo('products'); toggleMobileMenu()" class="block py-2 text-gray-700 hover:text-primary font-medium">Products</a>
-            </div>
+      <div class="container-custom py-4">
+        <div class="flex items-center justify-between">
+          <!-- Logo -->
+          <a
+            href="#"
+            onclick="navigateTo('home')"
+            class="flex items-center space-x-2"
+          >
+            <span class="text-primary text-2xl font-bold font-bricolage"
+              >Vanilla Store</span
+            >
+          </a>
+
+          <!-- Desktop Navigation -->
+          <div class="hidden md:flex items-center space-x-8">
+            <a
+              href="#"
+              onclick="navigateTo('home')"
+              class="text-gray-700 hover:text-primary font-medium"
+              >Home</a
+            >
+            <a
+              href="#"
+              onclick="navigateTo('products')"
+              class="text-gray-700 hover:text-primary font-medium"
+              >Products</a
+            >
+          </div>
+
+          <!-- Cart Icon -->
+          <div class="flex items-center space-x-4">
+            <a href="#" onclick="navigateTo('cart')" class="relative">
+              <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+              <span
+                id="cart-count"
+                class="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden"
+                >0</span
+              >
+            </a>
+
+            <!-- Mobile menu button -->
+            <button
+              onclick="toggleMobileMenu()"
+              class="md:hidden text-gray-700 focus:outline-none"
+            >
+              <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+          </div>
         </div>
+
+        <!-- Mobile Navigation -->
+        <div id="mobile-menu" class="md:hidden mt-4 pb-4 hidden">
+          <a
+            href="#"
+            onclick="navigateTo('home'); toggleMobileMenu()"
+            class="block py-2 text-gray-700 hover:text-primary font-medium"
+            >Home</a
+          >
+          <a
+            href="#"
+            onclick="navigateTo('products'); toggleMobileMenu()"
+            class="block py-2 text-gray-700 hover:text-primary font-medium"
+            >Products</a
+          >
+        </div>
+      </div>
     </nav>
 
     <!-- Main Content -->
     <main id="main-content" class="flex-grow">
-        <!-- Content will be dynamically loaded here -->
+      <!-- Content will be dynamically loaded here -->
     </main>
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white mt-12 px-9">
-        <div class="container-custom py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- About -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4 font-bricolage">Fresh Food Store</h3>
-                    <p class="text-gray-300">
-                        We provide the freshest fruits and vegetables from local farmers to your table.
-                        Now accepting cryptocurrency payments powered by Coinley!
-                    </p>
-                </div>
-                
-                <!-- Quick Links -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" onclick="navigateTo('home')" class="text-gray-300 hover:text-white">Home</a></li>
-                        <li><a href="#" onclick="navigateTo('products')" class="text-gray-300 hover:text-white">Products</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Contact -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
-                    <address class="text-gray-300 not-italic">
-                        <p>123 Fresh Street</p>
-                        <p>Healthy City, HC 12345</p>
-                        <p>Email: info@freshfood.com</p>
-                    </address>
-                </div>
-            </div>
-            
-            <!-- Copyright -->
-            <div class="border-t border-gray-700 mt-8 pt-4 text-center text-gray-300">
-                <p>&copy; 2025 Fresh Food Store. All rights reserved. Powered by Coinley Payments.</p>
-            </div>
+      <div class="container-custom py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- About -->
+          <div>
+            <h3 class="text-lg font-bold mb-4 font-bricolage">Vanilla Store</h3>
+            <p class="text-gray-300">
+              We provide the freshest vanilla and products from local farmers to
+              your table. Now accepting cryptocurrency payments powered by
+              Coinley!
+            </p>
+          </div>
+
+          <!-- Quick Links -->
+          <div>
+            <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('home')"
+                  class="text-gray-300 hover:text-white"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('products')"
+                  class="text-gray-300 hover:text-white"
+                  >Products</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Contact -->
+          <div>
+            <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+            <address class="text-gray-300 not-italic">
+              <p>123 Vanilla Street</p>
+              <p>Healthy City, HC 12345</p>
+              <p>Email: info@vanillastore.com</p>
+            </address>
+          </div>
         </div>
+
+        <!-- Copyright -->
+        <div
+          class="border-t border-gray-700 mt-8 pt-4 text-center text-gray-300"
+        >
+          <p>
+            &copy; 2025 Vanilla Store. All rights reserved. Powered by Coinley
+            Payments.
+          </p>
+        </div>
+      </div>
     </footer>
 
     <script>
-        // Global State Management
-        const appState = {
-            currentPage: 'home',
-            products: [],
-            cart: JSON.parse(localStorage.getItem('cart')) || [],
-            loading: false,
-            error: null,
-            currentProduct: null,
-            searchTerm: '',
-            filter: 'all'
-        };
+      // Global State Management
+      const appState = {
+        currentPage: "home",
+        products: [],
+        cart: JSON.parse(localStorage.getItem("cart")) || [],
+        loading: false,
+        error: null,
+        currentProduct: null,
+        searchTerm: "",
+        filter: "all",
+      };
 
-        // API Base URL
-        const API_URL = 'http://localhost:8000';
+      // API Base URL
+      const API_URL = "http://localhost:8000";
+
+      // Initialize Coinley Payment Gateway
+      let coinleyPayment = null;
+
+      // Merchant wallet configuration - REPLACE WITH YOUR ACTUAL WALLET ADDRESSES
+      const merchantWallets = {
+        ethereum: "0x742d35Cc6634C0532925a3b8D6Ac8d9dddCAE63b",
+        bsc: "0x742d35Cc6634C0532925a3b8D6Ac8d9dddCAE63b",
+        polygon: "0x742d35Cc6634C0532925a3b8D6Ac8d9dddCAE63b",
+      };
+
+      // Sample products data
+      const sampleProducts = [
+        {
+          id: 1,
+          name: "Fresh Apples",
+          price: 3.99,
+          description: "Crisp and sweet red apples from local orchards",
+          category: "fruits",
+          unit: "lb",
+        },
+        {
+          id: 2,
+          name: "Organic Carrots",
+          price: 2.49,
+          description: "Fresh organic carrots, perfect for cooking or snacking",
+          category: "vegetables",
+          unit: "bunch",
+        },
+        {
+          id: 3,
+          name: "Ripe Bananas",
+          price: 0.5,
+          description: "Sweet yellow bananas, great for smoothies or breakfast",
+          category: "fruits",
+          unit: "bunch",
+        },
+        {
+          id: 4,
+          name: "Green Spinach",
+          price: 2.99,
+          description: "Fresh leafy spinach, rich in iron and vitamins",
+          category: "vegetables",
+          unit: "bag",
+        },
+        {
+          id: 5,
+          name: "Orange Oranges",
+          price: 4.49,
+          description: "Juicy Valencia oranges, packed with vitamin C",
+          category: "fruits",
+          unit: "bag",
+        },
+        {
+          id: 6,
+          name: "Fresh Broccoli",
+          price: 3.29,
+          description:
+            "Green broccoli crowns, perfect for steaming or stir-fry",
+          category: "vegetables",
+          unit: "head",
+        },
+      ];
+
+      // Initialize app when DOM loads
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("🚀 Initializing Fresh Food Store...");
+
+        // Initialize your existing app
+        appState.products = sampleProducts;
+        initApp();
 
         // Initialize Coinley Payment Gateway
-        let coinleyPayment = null;
+        try {
+          if (typeof CoinleyVanilla !== "undefined") {
+            coinleyPayment = new CoinleyVanilla({
+              // apiKey: "fdb87b029d8fb531589df71e17a8cc55",
+              // apiSecret: "5fe381f54803f100312117028542e952bd5d3d1d8b8df2dd1d0761c030cda4bf",
+              // apiUrl: "http://localhost:9000",
+              // apiKey: "afb78ff958350b9067798dd077c28459",
+              // apiSecret: "c22d3879eff18c2d3f8f8a61d4097c230a940356a3d139ffceee11ba65b1a34c",
+              // apiUrl: "https://coinleyserver-production.up.railway.app",
+              apiKey: "2ca225a6ee511ad51503efba135b769d",
+              apiSecret: "c14351f7a16db90b84f2d78d8ea1a691d9c1314ea39cdf0baa29176626dbdf72",
+              apiUrl: "https://coinleyserver-production.up.railway.app",
+              theme: "light",
+              debug: true,
+            });
+            console.log("✅ Coinley payment gateway initialized successfully");
+          } else {
+            console.warn(
+              "⚠️ CoinleyVanilla not loaded. Check if the script is properly included."
+            );
+          }
+        } catch (error) {
+          console.error("❌ Failed to initialize Coinley:", error);
+        }
+      });
 
-        // Merchant wallet configuration - REPLACE WITH YOUR ACTUAL WALLET ADDRESSES
-        const merchantWallets = {
-            ethereum: "0x742d35Cc6634C0532925a3b8D6Ac8d9dddCAE63b", 
-            bsc: "0x742d35Cc6634C0532925a3b8D6Ac8d9dddCAE63b",
-            polygon: "0x742d35Cc6634C0532925a3b8D6Ac8d9dddCAE63b"
-        };
+      // Utility Functions
+      function saveCartToStorage() {
+        localStorage.setItem("cart", JSON.stringify(appState.cart));
+      }
 
-        // Sample products data
-        const sampleProducts = [
-            {
-                id: 1,
-                name: "Fresh Apples",
-                price: 3.99,
-                description: "Crisp and sweet red apples from local orchards",
-                category: "fruits",
-                unit: "lb"
+      function updateCartCount() {
+        const cartCount = appState.cart.reduce(
+          (total, item) => total + item.quantity,
+          0
+        );
+        const cartCountElement = document.getElementById("cart-count");
+        if (cartCount > 0) {
+          cartCountElement.textContent = cartCount;
+          cartCountElement.classList.remove("hidden");
+        } else {
+          cartCountElement.classList.add("hidden");
+        }
+      }
+
+      function addToCart(product, quantity = 1) {
+        const existingItem = appState.cart.find(
+          (item) => item.id === product.id
+        );
+
+        if (existingItem) {
+          existingItem.quantity += quantity;
+        } else {
+          appState.cart.push({ ...product, quantity });
+        }
+
+        saveCartToStorage();
+        updateCartCount();
+        renderCurrentPage();
+      }
+
+      function removeFromCart(productId) {
+        appState.cart = appState.cart.filter((item) => item.id !== productId);
+        saveCartToStorage();
+        updateCartCount();
+        renderCurrentPage();
+      }
+
+      function updateCartQuantity(productId, quantity) {
+        if (quantity <= 0) {
+          removeFromCart(productId);
+          return;
+        }
+
+        const item = appState.cart.find((item) => item.id === productId);
+        if (item) {
+          item.quantity = quantity;
+          saveCartToStorage();
+          updateCartCount();
+          renderCurrentPage();
+        }
+      }
+
+      function isInCart(productId) {
+        return appState.cart.some((item) => item.id === productId);
+      }
+
+      function getCartSubtotal() {
+        return appState.cart.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        );
+      }
+
+      // Navigation Functions
+      function navigateTo(page, params = {}) {
+        appState.currentPage = page;
+
+        if (page === "product-detail") {
+          fetchProduct(params.id).then(() => renderCurrentPage());
+        } else {
+          renderCurrentPage();
+        }
+
+        window.location.hash = page + (params.id ? `/${params.id}` : "");
+      }
+
+      function toggleMobileMenu() {
+        const mobileMenu = document.getElementById("mobile-menu");
+        mobileMenu.classList.toggle("hidden");
+      }
+
+      // API Functions
+      async function fetchProducts() {
+        try {
+          appState.loading = true;
+          appState.error = null;
+
+          const response = await fetch(`${API_URL}/api/products`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          appState.products = data;
+          appState.loading = false;
+        } catch (error) {
+          console.error("Error fetching products:", error);
+          appState.products = sampleProducts;
+          appState.loading = false;
+          appState.error = null;
+        }
+      }
+
+      async function fetchProduct(id) {
+        try {
+          appState.loading = true;
+          appState.error = null;
+
+          const response = await fetch(`${API_URL}/api/products/${id}`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          appState.currentProduct = data;
+          appState.loading = false;
+        } catch (error) {
+          console.error("Error fetching product:", error);
+          appState.currentProduct = sampleProducts.find(
+            (p) => p.id === parseInt(id)
+          );
+
+          if (!appState.currentProduct) {
+            appState.error = "Product not found";
+          } else {
+            appState.error = null;
+          }
+
+          appState.loading = false;
+        }
+      }
+
+      async function createOrder(orderData) {
+        try {
+          const response = await fetch(`${API_URL}/api/orders`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-            {
-                id: 2,
-                name: "Organic Carrots",
-                price: 2.49,
-                description: "Fresh organic carrots, perfect for cooking or snacking",
-                category: "vegetables",
-                unit: "bunch"
+            body: JSON.stringify(orderData),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error("Error creating order:", error);
+          throw new Error("Failed to create order. Please try again.");
+        }
+      }
+
+      async function updateOrder(orderId, updateData) {
+        try {
+          const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
             },
-            {
-                id: 3,
-                name: "Ripe Bananas",
-                price: 0.50,
-                description: "Sweet yellow bananas, great for smoothies or breakfast",
-                category: "fruits",
-                unit: "bunch"
-            },
-            {
-                id: 4,
-                name: "Green Spinach",
-                price: 2.99,
-                description: "Fresh leafy spinach, rich in iron and vitamins",
-                category: "vegetables",
-                unit: "bag"
-            },
-            {
-                id: 5,
-                name: "Orange Oranges",
-                price: 4.49,
-                description: "Juicy Valencia oranges, packed with vitamin C",
-                category: "fruits",
-                unit: "bag"
-            },
-            {
-                id: 6,
-                name: "Fresh Broccoli",
-                price: 3.29,
-                description: "Green broccoli crowns, perfect for steaming or stir-fry",
-                category: "vegetables",
-                unit: "head"
-            }
-        ];
+            body: JSON.stringify(updateData),
+          });
 
-        // Initialize app when DOM loads
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Initializing Fresh Food Store...');
-            
-            // Initialize your existing app
-            appState.products = sampleProducts;
-            initApp();
-            
-            // Initialize Coinley Payment Gateway
-            try {
-                if (typeof CoinleyVanilla !== 'undefined') {
-                    coinleyPayment = new CoinleyVanilla({
-                        // apiKey: "fdb87b029d8fb531589df71e17a8cc55",
-                        // apiSecret: "5fe381f54803f100312117028542e952bd5d3d1d8b8df2dd1d0761c030cda4bf",
-                        // apiUrl: "http://localhost:9000",
-                        apiKey: "afb78ff958350b9067798dd077c28459",
-                        apiSecret: "c22d3879eff18c2d3f8f8a61d4097c230a940356a3d139ffceee11ba65b1a34c",
-                        apiUrl: "https://coinleyserver-production.up.railway.app",
-                        theme: "light",
-                        debug: true
-                    });
-                    console.log('✅ Coinley payment gateway initialized successfully');
-                } else {
-                    console.warn('⚠️ CoinleyVanilla not loaded. Check if the script is properly included.');
-                }
-            } catch (error) {
-                console.error('❌ Failed to initialize Coinley:', error);
-            }
-        });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
 
-        // Utility Functions
-        function saveCartToStorage() {
-            localStorage.setItem('cart', JSON.stringify(appState.cart));
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error("Error updating order:", error);
+          throw new Error("Failed to update order status.");
         }
+      }
 
-        function updateCartCount() {
-            const cartCount = appState.cart.reduce((total, item) => total + item.quantity, 0);
-            const cartCountElement = document.getElementById('cart-count');
-            if (cartCount > 0) {
-                cartCountElement.textContent = cartCount;
-                cartCountElement.classList.remove('hidden');
-            } else {
-                cartCountElement.classList.add('hidden');
-            }
-        }
+      // COINLEY PAYMENT INTEGRATION
+      async function processCheckout(email, paymentMethod) {
+        try {
+          if (!coinleyPayment) {
+            throw new Error(
+              "Coinley payment gateway not initialized. Please refresh the page and try again."
+            );
+          }
 
-        function addToCart(product, quantity = 1) {
-            const existingItem = appState.cart.find(item => item.id === product.id);
-            
-            if (existingItem) {
-                existingItem.quantity += quantity;
-            } else {
-                appState.cart.push({ ...product, quantity });
-            }
-            
-            saveCartToStorage();
-            updateCartCount();
-            renderCurrentPage();
-        }
+          // Show processing state
+          const submitButton = document.getElementById("checkout-submit");
+          const errorElement = document.getElementById("checkout-error");
 
-        function removeFromCart(productId) {
-            appState.cart = appState.cart.filter(item => item.id !== productId);
-            saveCartToStorage();
-            updateCartCount();
-            renderCurrentPage();
-        }
-
-        function updateCartQuantity(productId, quantity) {
-            if (quantity <= 0) {
-                removeFromCart(productId);
-                return;
-            }
-            
-            const item = appState.cart.find(item => item.id === productId);
-            if (item) {
-                item.quantity = quantity;
-                saveCartToStorage();
-                updateCartCount();
-                renderCurrentPage();
-            }
-        }
-
-        function isInCart(productId) {
-            return appState.cart.some(item => item.id === productId);
-        }
-
-        function getCartSubtotal() {
-            return appState.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-        }
-
-        // Navigation Functions
-        function navigateTo(page, params = {}) {
-            appState.currentPage = page;
-            
-            if (page === 'product-detail') {
-                fetchProduct(params.id).then(() => renderCurrentPage());
-            } else {
-                renderCurrentPage();
-            }
-            
-            window.location.hash = page + (params.id ? `/${params.id}` : '');
-        }
-
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('hidden');
-        }
-
-        // API Functions
-        async function fetchProducts() {
-            try {
-                appState.loading = true;
-                appState.error = null;
-                
-                const response = await fetch(`${API_URL}/api/products`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                appState.products = data;
-                appState.loading = false;
-                
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                appState.products = sampleProducts;
-                appState.loading = false;
-                appState.error = null;
-            }
-        }
-
-        async function fetchProduct(id) {
-            try {
-                appState.loading = true;
-                appState.error = null;
-                
-                const response = await fetch(`${API_URL}/api/products/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                appState.currentProduct = data;
-                appState.loading = false;
-                
-            } catch (error) {
-                console.error('Error fetching product:', error);
-                appState.currentProduct = sampleProducts.find(p => p.id === parseInt(id));
-                
-                if (!appState.currentProduct) {
-                    appState.error = 'Product not found';
-                } else {
-                    appState.error = null;
-                }
-                
-                appState.loading = false;
-            }
-        }
-
-        async function createOrder(orderData) {
-            try {
-                const response = await fetch(`${API_URL}/api/orders`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderData)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return data;
-                
-            } catch (error) {
-                console.error('Error creating order:', error);
-                throw new Error('Failed to create order. Please try again.');
-            }
-        }
-
-        async function updateOrder(orderId, updateData) {
-            try {
-                const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(updateData)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return data;
-                
-            } catch (error) {
-                console.error('Error updating order:', error);
-                throw new Error('Failed to update order status.');
-            }
-        }
-
-        // COINLEY PAYMENT INTEGRATION
-        async function processCheckout(email, paymentMethod) {
-            try {
-                if (!coinleyPayment) {
-                    throw new Error('Coinley payment gateway not initialized. Please refresh the page and try again.');
-                }
-
-                // Show processing state
-                const submitButton = document.getElementById('checkout-submit');
-                const errorElement = document.getElementById('checkout-error');
-                
-                submitButton.disabled = true;
-                submitButton.innerHTML = `
+          submitButton.disabled = true;
+          submitButton.innerHTML = `
                     <span class="flex items-center justify-center">
                         <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -464,184 +541,205 @@
                         Processing...
                     </span>
                 `;
-                errorElement.classList.add('hidden');
-                
-                // Create order object
-                const subtotal = getCartSubtotal();
-                const orderData = {
-                    items: appState.cart,
-                    customer: { email: email },
-                    totals: { subtotal: subtotal, total: subtotal },
-                    paymentMethod: paymentMethod,
-                    merchantWallets: merchantWallets
-                };
-                
-                // Create order in backend or generate temp ID
-                let orderId;
-                try {
-                    const orderResponse = await createOrder(orderData);
-                    orderId = orderResponse.id;
-                } catch (error) {
-                    orderId = 'temp_' + Date.now();
-                    console.warn('Backend order creation failed, using temporary ID:', orderId);
-                }
-                
-                console.log('Order created with ID:', orderId);
-                localStorage.setItem('currentOrderId', orderId);
-                
-                // Open Coinley payment modal
-                const paymentConfig = {
-                    amount: subtotal,
-                    customerEmail: email,
-                    merchantName: "Fresh Food Store",
-                    callbackUrl: `${window.location.origin}/api/webhooks/payments/coinley`,
-                    merchantWalletAddresses: merchantWallets,
-                    metadata: {
-                        orderId: orderId,
-                        customerEmail: email,
-                        source: 'vanilla-js-store'
-                    }
-                };
+          errorElement.classList.add("hidden");
 
-                const callbacks = {
-                    onSuccess: (paymentId, transactionHash, paymentDetails) => {
-                        console.log('Payment successful:', { paymentId, transactionHash, paymentDetails });
-                        handlePaymentSuccess(orderId, paymentId, transactionHash, paymentDetails);
-                    },
-                    onError: (error) => {
-                        console.error('Payment failed:', error);
-                        handlePaymentError(error);
-                    },
-                    onClose: () => {
-                        console.log('Payment modal closed');
-                        // Reset button state
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = 'Place Order';
-                    }
-                };
+          // Create order object
+          const subtotal = getCartSubtotal();
+          const orderData = {
+            items: appState.cart,
+            customer: { email: email },
+            totals: { subtotal: subtotal, total: subtotal },
+            paymentMethod: paymentMethod,
+            merchantWallets: merchantWallets,
+          };
 
-                // Open the payment modal
-                coinleyPayment.open(paymentConfig, callbacks);
-                
-            } catch (error) {
-                console.error('Checkout error:', error);
-                showCheckoutError(error.message || 'There was a problem processing your order. Please try again.');
-                
-                // Reset button state
-                const submitButton = document.getElementById('checkout-submit');
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = 'Place Order';
-                }
-            }
+          // Create order in backend or generate temp ID
+          let orderId;
+          try {
+            const orderResponse = await createOrder(orderData);
+            orderId = orderResponse.id;
+          } catch (error) {
+            orderId = "temp_" + Date.now();
+            console.warn(
+              "Backend order creation failed, using temporary ID:",
+              orderId
+            );
+          }
+
+          console.log("Order created with ID:", orderId);
+          localStorage.setItem("currentOrderId", orderId);
+
+          // Open Coinley payment modal
+          const paymentConfig = {
+            amount: subtotal,
+            customerEmail: email,
+            merchantName: "Fresh Food Store",
+            callbackUrl: `${window.location.origin}/api/webhooks/payments/coinley`,
+            merchantWalletAddresses: merchantWallets,
+            metadata: {
+              orderId: orderId,
+              customerEmail: email,
+              source: "vanilla-js-store",
+            },
+          };
+
+          const callbacks = {
+            onSuccess: (paymentId, transactionHash, paymentDetails) => {
+              console.log("Payment successful:", {
+                paymentId,
+                transactionHash,
+                paymentDetails,
+              });
+              handlePaymentSuccess(
+                orderId,
+                paymentId,
+                transactionHash,
+                paymentDetails
+              );
+            },
+            onError: (error) => {
+              console.error("Payment failed:", error);
+              handlePaymentError(error);
+            },
+            onClose: () => {
+              console.log("Payment modal closed");
+              // Reset button state
+              submitButton.disabled = false;
+              submitButton.innerHTML = "Place Order";
+            },
+          };
+
+          // Open the payment modal
+          coinleyPayment.open(paymentConfig, callbacks);
+        } catch (error) {
+          console.error("Checkout error:", error);
+          showCheckoutError(
+            error.message ||
+              "There was a problem processing your order. Please try again."
+          );
+
+          // Reset button state
+          const submitButton = document.getElementById("checkout-submit");
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = "Place Order";
+          }
+        }
+      }
+
+      // Handle successful payment
+      async function handlePaymentSuccess(
+        orderId,
+        paymentId,
+        transactionHash,
+        paymentDetails
+      ) {
+        try {
+          // Update order with payment details (if backend available)
+          try {
+            await updateOrder(orderId, {
+              paymentStatus: "paid",
+              paymentDetails: {
+                paymentId,
+                status: "success",
+                transactionId: transactionHash,
+                network: paymentDetails?.network,
+                currency: paymentDetails?.currency,
+                amount: paymentDetails?.amount || getCartSubtotal(),
+                timestamp: new Date().toISOString(),
+              },
+            });
+          } catch (error) {
+            console.warn("Backend order update failed:", error);
+          }
+
+          // Store success data
+          const successData = {
+            orderId: orderId,
+            total: getCartSubtotal(),
+            paymentDetails: {
+              transactionId: transactionHash,
+              paymentId: paymentId,
+              network: paymentDetails?.network,
+              currency: paymentDetails?.currency,
+            },
+          };
+
+          localStorage.setItem("lastOrder", JSON.stringify(successData));
+
+          // Clear cart
+          appState.cart = [];
+          saveCartToStorage();
+          updateCartCount();
+
+          // Navigate to success page
+          navigateTo("order-success");
+        } catch (error) {
+          console.error("Payment success handling error:", error);
+          showCheckoutError(
+            "Payment was received, but we had trouble updating your order. Please contact support with your transaction ID: " +
+              transactionHash
+          );
+        }
+      }
+
+      // Handle payment error
+      function handlePaymentError(error) {
+        showCheckoutError(`Payment failed: ${error}`);
+      }
+
+      // Event Handlers
+      function handleSearch(value) {
+        appState.searchTerm = value;
+        renderProductsPage();
+      }
+
+      function handleFilterChange(filter) {
+        appState.filter = filter;
+        renderProductsPage();
+      }
+
+      function handleAddToCartFromDetail() {
+        const quantityInput = document.getElementById("quantity-input");
+        const quantity = parseInt(quantityInput.value) || 1;
+        addToCart(appState.currentProduct, quantity);
+      }
+
+      function handleCheckoutSubmit(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const email = formData.get("email");
+        const paymentMethod = formData.get("paymentMethod") || "coinley";
+
+        if (!email) {
+          showCheckoutError("Please enter your email address");
+          return;
         }
 
-        // Handle successful payment
-        async function handlePaymentSuccess(orderId, paymentId, transactionHash, paymentDetails) {
-            try {
-                // Update order with payment details (if backend available)
-                try {
-                    await updateOrder(orderId, {
-                        paymentStatus: 'paid',
-                        paymentDetails: {
-                            paymentId,
-                            status: 'success',
-                            transactionId: transactionHash,
-                            network: paymentDetails?.network,
-                            currency: paymentDetails?.currency,
-                            amount: paymentDetails?.amount || getCartSubtotal(),
-                            timestamp: new Date().toISOString()
-                        }
-                    });
-                } catch (error) {
-                    console.warn('Backend order update failed:', error);
-                }
-
-                // Store success data
-                const successData = {
-                    orderId: orderId,
-                    total: getCartSubtotal(),
-                    paymentDetails: {
-                        transactionId: transactionHash,
-                        paymentId: paymentId,
-                        network: paymentDetails?.network,
-                        currency: paymentDetails?.currency
-                    }
-                };
-
-                localStorage.setItem('lastOrder', JSON.stringify(successData));
-
-                // Clear cart
-                appState.cart = [];
-                saveCartToStorage();
-                updateCartCount();
-
-                // Navigate to success page
-                navigateTo('order-success');
-
-            } catch (error) {
-                console.error('Payment success handling error:', error);
-                showCheckoutError('Payment was received, but we had trouble updating your order. Please contact support with your transaction ID: ' + transactionHash);
-            }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showCheckoutError("Please enter a valid email address");
+          return;
         }
 
-        // Handle payment error
-        function handlePaymentError(error) {
-            showCheckoutError(`Payment failed: ${error}`);
-        }
+        processCheckout(email, paymentMethod);
+      }
 
-        // Event Handlers
-        function handleSearch(value) {
-            appState.searchTerm = value;
-            renderProductsPage();
+      function showCheckoutError(message) {
+        const errorElement = document.getElementById("checkout-error");
+        if (errorElement) {
+          errorElement.textContent = message;
+          errorElement.classList.remove("hidden");
         }
+      }
 
-        function handleFilterChange(filter) {
-            appState.filter = filter;
-            renderProductsPage();
-        }
+      // Page Rendering Functions
+      function renderHomePage() {
+        const mainContent = document.getElementById("main-content");
+        const featuredProducts = appState.products.slice(0, 6);
 
-        function handleAddToCartFromDetail() {
-            const quantityInput = document.getElementById('quantity-input');
-            const quantity = parseInt(quantityInput.value) || 1;
-            addToCart(appState.currentProduct, quantity);
-        }
-
-        function handleCheckoutSubmit(event) {
-            event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const email = formData.get('email');
-            const paymentMethod = formData.get('paymentMethod') || 'coinley';
-            
-            if (!email) {
-                showCheckoutError('Please enter your email address');
-                return;
-            }
-            
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showCheckoutError('Please enter a valid email address');
-                return;
-            }
-            
-            processCheckout(email, paymentMethod);
-        }
-
-        function showCheckoutError(message) {
-            const errorElement = document.getElementById('checkout-error');
-            if (errorElement) {
-                errorElement.textContent = message;
-                errorElement.classList.remove('hidden');
-            }
-        }
-
-        // Page Rendering Functions
-        function renderHomePage() {
-            const mainContent = document.getElementById('main-content');
-            const featuredProducts = appState.products.slice(0, 6);
-            
-            mainContent.innerHTML = `
+        mainContent.innerHTML = `
                 <div>
                     <!-- Hero Section -->
                     <section class="relative h-96 px-9 md:px-64 pt-9">
@@ -667,7 +765,9 @@
                             <h2 class="text-3xl font-bricolage font-bold text-gray-900 text-center mb-8">Featured Products</h2>
                             
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                                ${featuredProducts.map(product => renderProductCard(product)).join('')}
+                                ${featuredProducts
+                                  .map((product) => renderProductCard(product))
+                                  .join("")}
                             </div>
 
                             <div class="text-center mt-10">
@@ -712,27 +812,35 @@
                     </section>
                 </div>
             `;
-            
-            lucide.createIcons();
-        }
 
-        function renderProductsPage() {
-            const mainContent = document.getElementById('main-content');
-            
-            // Filter products
-            const filteredProducts = appState.products.filter(product => {
-                if (appState.filter !== 'all' && product.category !== appState.filter) {
-                    return false;
-                }
-                
-                if (appState.searchTerm && !product.name.toLowerCase().includes(appState.searchTerm.toLowerCase())) {
-                    return false;
-                }
-                
-                return true;
-            });
-            
-            mainContent.innerHTML = `
+        lucide.createIcons();
+      }
+
+      function renderProductsPage() {
+        const mainContent = document.getElementById("main-content");
+
+        // Filter products
+        const filteredProducts = appState.products.filter((product) => {
+          if (
+            appState.filter !== "all" &&
+            product.category !== appState.filter
+          ) {
+            return false;
+          }
+
+          if (
+            appState.searchTerm &&
+            !product.name
+              .toLowerCase()
+              .includes(appState.searchTerm.toLowerCase())
+          ) {
+            return false;
+          }
+
+          return true;
+        });
+
+        mainContent.innerHTML = `
                 <div class="container-custom py-8 px-9">
                     <h1 class="text-3xl font-bold mb-8 text-center font-bricolage">Our Products</h1>
                     
@@ -754,21 +862,33 @@
                                 
                                 <button
                                     onclick="handleFilterChange('all')"
-                                    class="btn ${appState.filter === 'all' ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-800 hover:bg-primary hover:text-white'} rounded-3xl py-2 w-[200px] px-4 transition-colors"
+                                    class="btn ${
+                                      appState.filter === "all"
+                                        ? "bg-primary text-white hover:bg-primary"
+                                        : "bg-gray-200 text-gray-800 hover:bg-primary hover:text-white"
+                                    } rounded-3xl py-2 w-[200px] px-4 transition-colors"
                                 >
                                     All
                                 </button>
                                 
                                 <button
                                     onclick="handleFilterChange('fruits')"
-                                    class="btn ${appState.filter === 'fruits' ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-800 hover:bg-primary hover:text-white'} rounded-3xl py-2 w-[200px] px-4 transition-colors"
+                                    class="btn ${
+                                      appState.filter === "fruits"
+                                        ? "bg-primary text-white hover:bg-primary"
+                                        : "bg-gray-200 text-gray-800 hover:bg-primary hover:text-white"
+                                    } rounded-3xl py-2 w-[200px] px-4 transition-colors"
                                 >
                                     Fruits
                                 </button>
                                 
                                 <button
                                     onclick="handleFilterChange('vegetables')"
-                                    class="btn ${appState.filter === 'vegetables' ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-800 hover:bg-primary hover:text-white'} rounded-3xl py-2 w-[200px] px-4 transition-colors"
+                                    class="btn ${
+                                      appState.filter === "vegetables"
+                                        ? "bg-primary text-white hover:bg-primary"
+                                        : "bg-gray-200 text-gray-800 hover:bg-primary hover:text-white"
+                                    } rounded-3xl py-2 w-[200px] px-4 transition-colors"
                                 >
                                     Vegetables
                                 </button>
@@ -777,88 +897,113 @@
                         
                         <!-- Products Grid -->
                         <div>
-                            ${filteredProducts.length === 0 ? `
+                            ${
+                              filteredProducts.length === 0
+                                ? `
                                 <div class="text-center py-12">
                                     <p class="text-gray-500 text-lg">No products found matching your criteria.</p>
                                 </div>
-                            ` : `
+                            `
+                                : `
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                                    ${filteredProducts.map(product => renderProductCard(product)).join('')}
+                                    ${filteredProducts
+                                      .map((product) =>
+                                        renderProductCard(product)
+                                      )
+                                      .join("")}
                                 </div>
-                            `}
+                            `
+                            }
                         </div>
                     </div>
                 </div>
             `;
-            
-            lucide.createIcons();
-        }
 
-        function renderProductCard(product) {
-            const inCart = isInCart(product.id);
-            
-            return `
+        lucide.createIcons();
+      }
+
+      function renderProductCard(product) {
+        const inCart = isInCart(product.id);
+
+        return `
                 <div class="bg-white rounded-2xl shadow-md group transition-transform duration-300 hover:scale-105">
-                    <div onclick="navigateTo('product-detail', {id: ${product.id}})" class="cursor-pointer">
+                    <div onclick="navigateTo('product-detail', {id: ${
+                      product.id
+                    }})" class="cursor-pointer">
                         <div class="h-48 overflow-hidden flex justify-center items-center border rounded-t-2xl bg-gray-100">
                             <i data-lucide="package" class="w-12 h-12 text-gray-400"></i>
                         </div>
                         <div class="p-4">
-                            <h3 class="text-lg font-semibold text-primary font-bricolage">${product.name}</h3>
+                            <h3 class="text-lg font-semibold text-primary font-bricolage">${
+                              product.name
+                            }</h3>
                             <div class="flex justify-between items-center mt-2">
                                 <span class="text-gray-900 font-bricolage text-xl font-bold">
                                     $${Number(product.price).toFixed(2)}
                                 </span>
                             </div>
-                            <p class="text-gray-600 text-sm mt-2 line-clamp-2">${product.description}</p>
+                            <p class="text-gray-600 text-sm mt-2 line-clamp-2">${
+                              product.description
+                            }</p>
                         </div>
                     </div>
                     
                     <div class="p-4 pt-0">
-                        ${inCart ? `
+                        ${
+                          inCart
+                            ? `
                             <button onclick="navigateTo('cart')" class="w-full bg-green-600 hover:bg-green-700 mt-3 text-white font-bricolage py-2 rounded-xl transition-colors duration-200">
                                 View Cart
                             </button>
-                        ` : `
-                            <button onclick="addToCart(${JSON.stringify(product).replace(/"/g, '&quot;')})" class="w-full bg-primary hover:bg-primary-dark mt-3 text-white font-bricolage py-2 rounded-xl transition-colors duration-200">
+                        `
+                            : `
+                            <button onclick="addToCart(${JSON.stringify(
+                              product
+                            ).replace(
+                              /"/g,
+                              "&quot;"
+                            )})" class="w-full bg-primary hover:bg-primary-dark mt-3 text-white font-bricolage py-2 rounded-xl transition-colors duration-200">
                                 Add to Cart
                             </button>
-                        `}
+                        `
+                        }
                     </div>
                 </div>
             `;
-        }
+      }
 
-        function renderProductDetailPage() {
-            const mainContent = document.getElementById('main-content');
-            
-            if (appState.loading) {
-                mainContent.innerHTML = `
+      function renderProductDetailPage() {
+        const mainContent = document.getElementById("main-content");
+
+        if (appState.loading) {
+          mainContent.innerHTML = `
                     <div class="container-custom py-12 flex justify-center">
                         <div class="loading-spinner"></div>
                     </div>
                 `;
-                return;
-            }
-            
-            if (appState.error || !appState.currentProduct) {
-                mainContent.innerHTML = `
+          return;
+        }
+
+        if (appState.error || !appState.currentProduct) {
+          mainContent.innerHTML = `
                     <div class="container-custom py-12">
                         <div class="bg-red-50 p-4 rounded-md">
-                            <p class="text-red-500">${appState.error || 'Product not found'}</p>
+                            <p class="text-red-500">${
+                              appState.error || "Product not found"
+                            }</p>
                             <button onclick="navigateTo('products')" class="text-primary hover:underline mt-2 inline-block">
                                 Back to Products
                             </button>
                         </div>
                     </div>
                 `;
-                return;
-            }
-            
-            const product = appState.currentProduct;
-            const inCart = isInCart(product.id);
-            
-            mainContent.innerHTML = `
+          return;
+        }
+
+        const product = appState.currentProduct;
+        const inCart = isInCart(product.id);
+
+        mainContent.innerHTML = `
                 <div class="container-custom py-8 px-9 md:px-24">
                     <div class="mb-4">
                         <button onclick="navigateTo('products')" class="text-primary hover:underline flex items-center">
@@ -878,18 +1023,28 @@
                             
                             <!-- Product Details -->
                             <div>
-                                <h1 class="text-3xl font-bold text-gray-900 mb-2 font-bricolage">${product.name}</h1>
+                                <h1 class="text-3xl font-bold text-gray-900 mb-2 font-bricolage">${
+                                  product.name
+                                }</h1>
                                 
                                 <div class="flex items-center mb-4">
-                                    <span class="text-2xl font-bold text-gray-900">$${Number(product.price).toFixed(2)}</span>
-                                    <span class="text-gray-500 ml-2">/ ${product.unit || 'each'}</span>
+                                    <span class="text-2xl font-bold text-gray-900">$${Number(
+                                      product.price
+                                    ).toFixed(2)}</span>
+                                    <span class="text-gray-500 ml-2">/ ${
+                                      product.unit || "each"
+                                    }</span>
                                 </div>
                                 
-                                <p class="text-gray-700 mb-6">${product.description}</p>
+                                <p class="text-gray-700 mb-6">${
+                                  product.description
+                                }</p>
                                 
                                 <!-- Add to Cart / View Cart -->
                                 <div class="flex items-center gap-4">
-                                    ${!inCart ? `
+                                    ${
+                                      !inCart
+                                        ? `
                                         <div class="w-24">
                                             <input
                                                 type="number"
@@ -899,33 +1054,39 @@
                                                 class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3"
                                             />
                                         </div>
-                                    ` : ''}
+                                    `
+                                        : ""
+                                    }
                                     
-                                    ${inCart ? `
+                                    ${
+                                      inCart
+                                        ? `
                                         <button onclick="navigateTo('cart')" class="bg-green-600 hover:bg-green-700 py-2 text-white rounded-2xl font-bricolage px-16 transition-colors duration-200">
                                             View Cart
                                         </button>
-                                    ` : `
+                                    `
+                                        : `
                                         <button onclick="handleAddToCartFromDetail()" class="bg-primary hover:bg-primary-dark py-2 text-white rounded-2xl font-bricolage px-16 transition-colors duration-200">
                                             Add to Cart
                                         </button>
-                                    `}
+                                    `
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
-            
-            lucide.createIcons();
-        }
 
-        function renderCartPage() {
-            const mainContent = document.getElementById('main-content');
-            const subtotal = getCartSubtotal();
-            
-            if (appState.cart.length === 0) {
-                mainContent.innerHTML = `
+        lucide.createIcons();
+      }
+
+      function renderCartPage() {
+        const mainContent = document.getElementById("main-content");
+        const subtotal = getCartSubtotal();
+
+        if (appState.cart.length === 0) {
+          mainContent.innerHTML = `
                     <div class="container-custom py-8 px-4 md:px-16">
                         <h1 class="text-3xl font-bold mb-8 text-center">Your Shopping Cart</h1>
                         
@@ -944,11 +1105,11 @@
                         </div>
                     </div>
                 `;
-                lucide.createIcons();
-                return;
-            }
-            
-            mainContent.innerHTML = `
+          lucide.createIcons();
+          return;
+        }
+
+        mainContent.innerHTML = `
                 <div class="container-custom py-8 px-4 md:px-16">
                     <h1 class="text-3xl font-bold mb-8 text-center">Your Shopping Cart</h1>
                     
@@ -957,7 +1118,9 @@
                         <div class="lg:col-span-2">
                             <div class="rounded-xl">
                                 <ul class="space-y-4">
-                                    ${appState.cart.map(item => `
+                                    ${appState.cart
+                                      .map(
+                                        (item) => `
                                         <li class="p-6 bg-white rounded-2xl shadow-2xl">
                                             <div class="flex items-center">
                                                 <!-- Product Image -->
@@ -970,16 +1133,24 @@
                                                 <!-- Product Details -->
                                                 <div class="ml-4 flex-1">
                                                     <h3 class="text-lg font-medium text-gray-900">
-                                                        <button onclick="navigateTo('product-detail', {id: ${item.id}})" class="hover:text-primary">
+                                                        <button onclick="navigateTo('product-detail', {id: ${
+                                                          item.id
+                                                        }})" class="hover:text-primary">
                                                             ${item.name}
                                                         </button>
                                                     </h3>
-                                                    <p class="mt-1 text-lg font-bold">$${Number(item.price).toFixed(2)}</p>
+                                                    <p class="mt-1 text-lg font-bold">$${Number(
+                                                      item.price
+                                                    ).toFixed(2)}</p>
                                                 </div>
                                                 
                                                 <!-- Quantity Controls -->
                                                 <div class="flex items-center ml-4 border px-3 rounded-2xl py-1">
-                                                    <button onclick="updateCartQuantity(${item.id}, ${item.quantity - 1})" class="text-gray-500 focus:outline-none">
+                                                    <button onclick="updateCartQuantity(${
+                                                      item.id
+                                                    }, ${
+                                          item.quantity - 1
+                                        })" class="text-gray-500 focus:outline-none">
                                                         <i data-lucide="minus" class="w-5 h-5"></i>
                                                     </button>
                                                     
@@ -987,7 +1158,11 @@
                                                         ${item.quantity}
                                                     </span>
                                                     
-                                                    <button onclick="updateCartQuantity(${item.id}, ${item.quantity + 1})" class="text-gray-500 focus:outline-none">
+                                                    <button onclick="updateCartQuantity(${
+                                                      item.id
+                                                    }, ${
+                                          item.quantity + 1
+                                        })" class="text-gray-500 focus:outline-none">
                                                         <i data-lucide="plus" class="w-5 h-5"></i>
                                                     </button>
                                                 </div>
@@ -995,17 +1170,24 @@
                                                 <!-- Item Total -->
                                                 <div class="ml-4 text-right">
                                                     <p class="text-sm font-medium text-gray-900">
-                                                        $${(item.price * item.quantity).toFixed(2)}
+                                                        $${(
+                                                          item.price *
+                                                          item.quantity
+                                                        ).toFixed(2)}
                                                     </p>
                                                 </div>
                                                 
                                                 <!-- Remove Button -->
-                                                <button onclick="removeFromCart(${item.id})" class="ml-4 text-red-500 hover:text-red-600 focus:outline-none">
+                                                <button onclick="removeFromCart(${
+                                                  item.id
+                                                })" class="ml-4 text-red-500 hover:text-red-600 focus:outline-none">
                                                     <i data-lucide="x" class="w-5 h-5"></i>
                                                 </button>
                                             </div>
                                         </li>
-                                    `).join('')}
+                                    `
+                                      )
+                                      .join("")}
                                 </ul>
                             </div>
                         </div>
@@ -1018,12 +1200,16 @@
                                 <div class="space-y-4">
                                     <div class="flex justify-between">
                                         <p class="text-gray-600">Subtotal</p>
-                                        <p class="text-gray-900 font-medium">$${subtotal.toFixed(2)}</p>
+                                        <p class="text-gray-900 font-medium">$${subtotal.toFixed(
+                                          2
+                                        )}</p>
                                     </div>
                                     
                                     <div class="border-t pt-4 flex justify-between">
                                         <p class="text-lg font-medium text-gray-900">Total</p>
-                                        <p class="text-lg font-bold text-primary">$${subtotal.toFixed(2)}</p>
+                                        <p class="text-lg font-bold text-primary">$${subtotal.toFixed(
+                                          2
+                                        )}</p>
                                     </div>
                                 </div>
                                 
@@ -1044,15 +1230,15 @@
                     </div>
                 </div>
             `;
-            
-            lucide.createIcons();
-        }
 
-        function renderCheckoutPage() {
-            const mainContent = document.getElementById('main-content');
-            const subtotal = getCartSubtotal();
-            
-            mainContent.innerHTML = `
+        lucide.createIcons();
+      }
+
+      function renderCheckoutPage() {
+        const mainContent = document.getElementById("main-content");
+        const subtotal = getCartSubtotal();
+
+        mainContent.innerHTML = `
                 <div class="container mx-auto py-8 px-4">
                     <h1 class="text-3xl font-bold mb-8 text-center">Checkout</h1>
 
@@ -1126,7 +1312,9 @@
 
                                 <div class="max-h-80 overflow-y-auto mb-4">
                                     <ul class="divide-y divide-gray-200">
-                                        ${appState.cart.map(item => `
+                                        ${appState.cart
+                                          .map(
+                                            (item) => `
                                             <li class="py-3 flex items-center">
                                                 <div class="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-md overflow-hidden">
                                                     <div class="flex justify-center items-center h-full">
@@ -1134,27 +1322,39 @@
                                                     </div>
                                                 </div>
                                                 <div class="ml-3 flex-1">
-                                                    <p class="text-sm font-medium text-gray-900">${item.name}</p>
-                                                    <p class="text-sm text-gray-500">Qty: ${item.quantity}</p>
+                                                    <p class="text-sm font-medium text-gray-900">${
+                                                      item.name
+                                                    }</p>
+                                                    <p class="text-sm text-gray-500">Qty: ${
+                                                      item.quantity
+                                                    }</p>
                                                 </div>
                                                 <p class="text-sm font-medium text-gray-900">
-                                                    $${(item.price * item.quantity).toFixed(2)}
+                                                    $${(
+                                                      item.price * item.quantity
+                                                    ).toFixed(2)}
                                                 </p>
                                             </li>
-                                        `).join('')}
+                                        `
+                                          )
+                                          .join("")}
                                     </ul>
                                 </div>
 
                                 <div class="space-y-3 border-t pt-3">
                                     <div class="flex justify-between">
                                         <p class="text-sm text-gray-600">Subtotal</p>
-                                        <p class="text-sm font-medium text-gray-900">$${subtotal.toFixed(2)}</p>
+                                        <p class="text-sm font-medium text-gray-900">$${subtotal.toFixed(
+                                          2
+                                        )}</p>
                                     </div>
 
                                     <div class="flex justify-between border-t pt-3">
                                         <p class="text-base font-medium text-gray-900">Total</p>
                                         <div class="text-right">
-                                            <p class="text-base font-bold text-primary">$${subtotal.toFixed(2)}</p>
+                                            <p class="text-base font-bold text-primary">$${subtotal.toFixed(
+                                              2
+                                            )}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1163,15 +1363,15 @@
                     </div>
                 </div>
             `;
-            
-            lucide.createIcons();
-        }
 
-        function renderOrderSuccessPage() {
-            const mainContent = document.getElementById('main-content');
-            const orderData = JSON.parse(localStorage.getItem('lastOrder') || '{}');
-            
-            mainContent.innerHTML = `
+        lucide.createIcons();
+      }
+
+      function renderOrderSuccessPage() {
+        const mainContent = document.getElementById("main-content");
+        const orderData = JSON.parse(localStorage.getItem("lastOrder") || "{}");
+
+        mainContent.innerHTML = `
                 <div class="container-custom py-12">
                     <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
                         <div class="text-center">
@@ -1190,17 +1390,28 @@
                                 <div class="grid grid-cols-2 gap-x-8 gap-y-4">
                                     <div>
                                         <p class="text-sm text-gray-500">Order ID</p>
-                                        <p class="font-medium">${orderData.orderId || 'ORD-' + Date.now()}</p>
+                                        <p class="font-medium">${
+                                          orderData.orderId ||
+                                          "ORD-" + Date.now()
+                                        }</p>
                                     </div>
                                     
                                     <div>
                                         <p class="text-sm text-gray-500">Total Amount</p>
-                                        <p class="font-medium">$${orderData.total ? orderData.total.toFixed(2) : '0.00'}</p>
+                                        <p class="font-medium">$${
+                                          orderData.total
+                                            ? orderData.total.toFixed(2)
+                                            : "0.00"
+                                        }</p>
                                     </div>
                                     
                                     <div>
                                         <p class="text-sm text-gray-500">Payment Method</p>
-                                        <p class="font-medium">Cryptocurrency${orderData.paymentDetails?.currency ? ` (${orderData.paymentDetails.currency})` : ''}</p>
+                                        <p class="font-medium">Cryptocurrency${
+                                          orderData.paymentDetails?.currency
+                                            ? ` (${orderData.paymentDetails.currency})`
+                                            : ""
+                                        }</p>
                                     </div>
                                     
                                     <div>
@@ -1208,12 +1419,16 @@
                                         <p class="text-green-600 font-medium">✅ Confirmed</p>
                                     </div>
                                     
-                                    ${orderData.paymentDetails?.transactionId ? `
+                                    ${
+                                      orderData.paymentDetails?.transactionId
+                                        ? `
                                         <div class="col-span-2">
                                             <p class="text-sm text-gray-500">Transaction ID</p>
                                             <p class="font-mono text-sm break-all">${orderData.paymentDetails.transactionId}</p>
                                         </div>
-                                    ` : ''}
+                                    `
+                                        : ""
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -1236,68 +1451,68 @@
                     </div>
                 </div>
             `;
-            
-            lucide.createIcons();
+
+        lucide.createIcons();
+      }
+
+      // Render current page
+      function renderCurrentPage() {
+        switch (appState.currentPage) {
+          case "home":
+            renderHomePage();
+            break;
+          case "products":
+            renderProductsPage();
+            break;
+          case "product-detail":
+            renderProductDetailPage();
+            break;
+          case "cart":
+            renderCartPage();
+            break;
+          case "checkout":
+            renderCheckoutPage();
+            break;
+          case "order-success":
+            renderOrderSuccessPage();
+            break;
+          default:
+            renderHomePage();
+        }
+      }
+
+      // Initialize app
+      function initApp() {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+          const [page, id] = hash.split("/");
+          if (page === "product-detail" && id) {
+            navigateTo(page, { id: parseInt(id) });
+          } else {
+            navigateTo(page);
+          }
+        } else {
+          navigateTo("home");
         }
 
-        // Render current page
-        function renderCurrentPage() {
-            switch (appState.currentPage) {
-                case 'home':
-                    renderHomePage();
-                    break;
-                case 'products':
-                    renderProductsPage();
-                    break;
-                case 'product-detail':
-                    renderProductDetailPage();
-                    break;
-                case 'cart':
-                    renderCartPage();
-                    break;
-                case 'checkout':
-                    renderCheckoutPage();
-                    break;
-                case 'order-success':
-                    renderOrderSuccessPage();
-                    break;
-                default:
-                    renderHomePage();
-            }
-        }
+        updateCartCount();
+        lucide.createIcons();
+      }
 
-        // Initialize app
-        function initApp() {
-            const hash = window.location.hash.substring(1);
-            if (hash) {
-                const [page, id] = hash.split('/');
-                if (page === 'product-detail' && id) {
-                    navigateTo(page, { id: parseInt(id) });
-                } else {
-                    navigateTo(page);
-                }
-            } else {
-                navigateTo('home');
-            }
-            
-            updateCartCount();
-            lucide.createIcons();
+      // Handle browser back/forward
+      window.addEventListener("popstate", () => {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+          const [page, id] = hash.split("/");
+          if (page === "product-detail" && id) {
+            navigateTo(page, { id: parseInt(id) });
+          } else {
+            navigateTo(page);
+          }
+        } else {
+          navigateTo("home");
         }
-
-        // Handle browser back/forward
-        window.addEventListener('popstate', () => {
-            const hash = window.location.hash.substring(1);
-            if (hash) {
-                const [page, id] = hash.split('/');
-                if (page === 'product-detail' && id) {
-                    navigateTo(page, { id: parseInt(id) });
-                } else {
-                    navigateTo(page);
-                }
-            } else {
-                navigateTo('home');
-            }
-        });
+      });
     </script>
-</body>
+  </body>
 </html>
